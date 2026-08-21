@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notion 藍紫雙時鐘小元件</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        violetPrimary: '#7C3AED',
+                        violetDark: '#4C1D95',
+                        bluePrimary: '#2563EB',
+                        glowViolet: 'rgba(124, 58, 237, 0.4)',
+                        glowBlue: 'rgba(37, 99, 235, 0.4)',
+                    },
+                    boxShadow: {
+                        'glow': '0 0 25px -5px rgba(139, 92, 246, 0.5), 0 0 10px -5px rgba(59, 130, 246, 0.3)',
+                        'clock': 'inset 0 2px 8px rgba(255, 255, 255, 0.15), 0 12px 24px -6px rgba(0, 0, 0, 0.5)',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', 'Noto Sans TC', sans-serif;
+            background: transparent;
+            user-select: none;
+        }
+
+        /* 順暢的指針旋轉動畫 */
+        .smooth-hand {
+            transition: transform 0.05s cubic-bezier(0.4, 2.08, 0.55, 0.44);
+            transform-origin: 50% 50%;
+        }
+
+        /* 玻璃擬態樣式 */
+        .glass-card {
+            background: rgba(30, 27, 75, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(167, 139, 250, 0.25);
+        }
+
+        .clock-container {
+            background: rgba(15, 23, 42, 0.75);
+            border: 1px solid rgba(139, 92, 246, 0.25);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-3 text-slate-100">
+
+    <!-- 主要 Widget 卡片 (寬版左右並排) -->
+    <div class="glass-card w-full max-w-2xl rounded-3xl p-5 shadow-glow flex flex-col items-center gap-4 relative overflow-hidden">
+        
+        <!-- 背景漸層光圈裝飾 -->
+        <div class="absolute -top-16 -left-16 w-36 h-36 bg-purple-600/30 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute -bottom-16 -right-16 w-36 h-36 bg-blue-600/30 rounded-full blur-2xl pointer-events-none"></div>
+
+        <!-- 左右雙時鐘區塊 Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full z-10">
+            
+            <!-- ==================== 1. 左側：台灣時間 ==================== -->
+            <div class="clock-container rounded-2xl p-4 flex flex-col items-center justify-between shadow-inner relative overflow-hidden gap-1">
+                <div class="absolute inset-0 bg-gradient-to-br from-indigo-600/10 to-purple-600/10 opacity-40"></div>
+
+                <!-- 標頭標籤與大日期標題 (放在時鐘上方) -->
+                <div class="flex flex-col items-center gap-1.5 z-10 w-full">
+                    <div class="flex items-center gap-1.5 bg-purple-950/70 border border-purple-500/30 px-3 py-1 rounded-full text-xs font-semibold text-purple-200">
+                        <span class="text-sm">🇹🇼</span>
+                        <span>台灣時間</span>
+                        <span class="text-[10px] bg-purple-800/60 px-1.5 py-0.5 rounded text-purple-300">UTC+8</span>
+                    </div>
+
+                    <!-- 台灣日期顯示 (大標題，酷亮綠色) -->
+                    <div id="twDateDisplay" class="text-lg font-extrabold text-emerald-400 tracking-wider drop-shadow-[0_0_12px_rgba(52,211,153,0.75)] text-center">
+                        ----年--月--日 星期-
+                    </div>
+                </div>
+
+                <!-- 類比時鐘本體 -->
+                <div class="relative w-36 h-36 my-2 rounded-full bg-slate-900/90 border-2 border-indigo-500/30 shadow-clock flex items-center justify-center z-10">
+                    <!-- 時鐘刻度 -->
+                    <svg class="absolute inset-0 w-full h-full p-2" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="48" fill="none" stroke="rgba(139, 92, 246, 0.15)" stroke-width="1"/>
+                        <g fill="#a78bfa" opacity="0.6">
+                            <circle cx="50" cy="8" r="1.5" />
+                            <circle cx="92" cy="50" r="1.5" />
+                            <circle cx="50" cy="92" r="1.5" />
+                            <circle cx="8" cy="50" r="1.5" />
+                            <circle cx="71" cy="13.5" r="1" />
+                            <circle cx="86.5" cy="29" r="1" />
+                            <circle cx="86.5" cy="71" r="1" />
+                            <circle cx="71" cy="86.5" r="1" />
+                            <circle cx="29" cy="86.5" r="1" />
+                            <circle cx="13.5" cy="71" r="1" />
+                            <circle cx="13.5" cy="29" r="1" />
+                            <circle cx="29" cy="13.5" r="1" />
+                        </g>
+                        <text x="50" y="20" font-size="7" fill="#c4b5fd" font-weight="600" text-anchor="middle" dominant-baseline="central">12</text>
+                        <text x="82" y="50" font-size="7" fill="#c4b5fd" font-weight="600" text-anchor="middle" dominant-baseline="central">3</text>
+                        <text x="50" y="81" font-size="7" fill="#c4b5fd" font-weight="600" text-anchor="middle" dominant-baseline="central">6</text>
+                        <text x="18" y="50" font-size="7" fill="#c4b5fd" font-weight="600" text-anchor="middle" dominant-baseline="central">9</text>
+                    </svg>
+
+                    <!-- 時針 / 分針 / 秒針 -->
+                    <div id="twHourHand" class="smooth-hand absolute w-1.5 h-10 bg-gradient-to-t from-indigo-300 to-white rounded-full bottom-1/2 left-[calc(50%-3px)] origin-bottom shadow-md z-10"></div>
+                    <div id="twMinuteHand" class="smooth-hand absolute w-1 h-13 bg-gradient-to-t from-purple-400 to-indigo-100 rounded-full bottom-1/2 left-[calc(50%-2px)] origin-bottom shadow-md z-20"></div>
+                    <div id="twSecondHand" class="smooth-hand absolute w-0.5 h-15 bg-pink-500 rounded-full bottom-1/2 left-[calc(50%-1px)] origin-bottom shadow-lg z-30">
+                        <div class="w-1.5 h-1.5 bg-pink-400 rounded-full -ml-[2px] -mt-[1px]"></div>
+                    </div>
+                    <div class="absolute w-2.5 h-2.5 bg-purple-300 rounded-full border-2 border-slate-900 z-40 shadow-sm"></div>
+                </div>
+
+                <!-- 數字時間 -->
+                <div id="twDigitalTime" class="text-xl font-bold tracking-wider text-slate-200 font-mono z-10">
+                    00:00:00
+                </div>
+            </div>
+
+            <!-- ==================== 2. 右側：德奧時間 ==================== -->
+            <div class="clock-container rounded-2xl p-4 flex flex-col items-center justify-between shadow-inner relative overflow-hidden gap-1">
+                <div class="absolute inset-0 bg-gradient-to-br from-indigo-600/10 to-purple-600/10 opacity-40"></div>
+
+                <!-- 標頭標籤與大日期標題 (放在時鐘上方) -->
+                <div class="flex flex-col items-center gap-1.5 z-10 w-full">
+                    <!-- 置中標籤與日夜圖示 -->
+                    <div class="flex items-center justify-center w-full">
+                        <div class="flex items-center gap-1.5 bg-purple-950/70 border border-purple-500/30 px-3 py-1 rounded-full text-xs font-semibold text-purple-200">
+                            <span class="text-sm">🇩🇪</span>
+                            <span>德國</span>
+                            <span class="opacity-40 mx-0.5">/</span>
+                            <span class="text-sm">🇦🇹</span>
+                            <span>奧地利</span>
+                            <span id="euSunMoonIcon" class="text-sm ml-1" title="當地球日夜">☀️</span>
+                        </div>
+                    </div>
+
+                    <!-- 德奧日期顯示 (大標題，亮紫色) -->
+                    <div id="euDateDisplay" class="text-lg font-extrabold text-purple-300 tracking-wide drop-shadow-[0_0_10px_rgba(192,132,252,0.6)] text-center">
+                        ----年--月--日 星期-
+                    </div>
+                </div>
+
+                <!-- 類比時鐘本體 -->
+                <div class="relative w-36 h-36 my-2 rounded-full bg-slate-900/90 border-2 border-indigo-500/30 shadow-clock flex items-center justify-center z-10">
+                    <!-- 時鐘刻度 -->
+                    <svg class="absolute inset-0 w-full h-full p-2" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="48" fill="none" stroke="rgba(139, 92, 246, 0.15)" stroke-width="1"/>
+                        <g fill="#a78bfa" opacity="0.6">
+                            <circle cx="50" cy="8" r="1.5" />
+                            <circle cx="92" cy="50" r="1.5" />
+                            <circle cx="50" cy="92" r="1.5" />
+                            <circle cx="8" cy="50" r="1.5" />
+                            <circle cx="71" cy="13.5" r="1" />
+                            <circle cx="86.5" cy="29" r="1" />
+                            <circle cx="86.5" cy="71" r="1" />
+                            <circle cx="71" cy="86.5" r="1" />
+                            <circle cx="29" cy="86.5" r="1" />
+                            <circle cx="13.5" cy="71" r="1" />
+                            <circle cx="13.5" cy="29" r="1" />
+                            <circle cx="29" cy="13.5" r="1" />
+                        </g>
+                        <text x="50" y="20" font-size="7" fill="#c4b5fd" font-weight="600" text-anchor="middle" dominant-baseline="central">12</text>
+                        <text x="82" y="50" font-size="7" fill="#c4b5fd" font-weight="600" text-anchor="middle" dominant-baseline="central">3</text>
+                        <text x="50" y="81" font-size="7" fill="#c4b5fd" font-weight="600" text-anchor="middle" dominant-baseline="central">6</text>
+                        <text x="18" y="50" font-size="7" fill="#c4b5fd" font-weight="600" text-anchor="middle" dominant-baseline="central">9</text>
+                    </svg>
+
+                    <!-- 時針 / 分針 / 秒針 -->
+                    <div id="euHourHand" class="smooth-hand absolute w-1.5 h-10 bg-gradient-to-t from-indigo-300 to-white rounded-full bottom-1/2 left-[calc(50%-3px)] origin-bottom shadow-md z-10"></div>
+                    <div id="euMinuteHand" class="smooth-hand absolute w-1 h-13 bg-gradient-to-t from-purple-400 to-indigo-100 rounded-full bottom-1/2 left-[calc(50%-2px)] origin-bottom shadow-md z-20"></div>
+                    <div id="euSecondHand" class="smooth-hand absolute w-0.5 h-15 bg-purple-400 rounded-full bottom-1/2 left-[calc(50%-1px)] origin-bottom shadow-lg z-30">
+                        <div class="w-1.5 h-1.5 bg-purple-300 rounded-full -ml-[2px] -mt-[1px]"></div>
+                    </div>
+                    <div class="absolute w-2.5 h-2.5 bg-purple-300 rounded-full border-2 border-slate-900 z-40 shadow-sm"></div>
+                </div>
+
+                <!-- 數字時間 -->
+                <div id="euDigitalTime" class="text-xl font-bold tracking-wider text-purple-200 font-mono z-10">
+                    00:00:00
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 頁腳說明 -->
+        <div class="text-[10px] text-purple-300/40 tracking-widest uppercase mt-0.5">
+            Notion Dual Clock Widget • Live
+        </div>
+
+    </div>
+
+    <!-- ==================== JavaScript 時鐘核心邏輯 ==================== -->
+    <script>
+        // 時區設定
+        const TIMEZONE_TW = 'Asia/Taipei';
+        const TIMEZONE_EU = 'Europe/Berlin'; // 德國與奧地利皆為 CET/CEST
+
+        // 台灣時鐘元素
+        const twHourHand = document.getElementById('twHourHand');
+        const twMinuteHand = document.getElementById('twMinuteHand');
+        const twSecondHand = document.getElementById('twSecondHand');
+        const twDigitalTime = document.getElementById('twDigitalTime');
+        const twDateDisplay = document.getElementById('twDateDisplay');
+
+        // 歐洲時鐘元素
+        const euHourHand = document.getElementById('euHourHand');
+        const euMinuteHand = document.getElementById('euMinuteHand');
+        const euSecondHand = document.getElementById('euSecondHand');
+        const euDigitalTime = document.getElementById('euDigitalTime');
+        const euDateDisplay = document.getElementById('euDateDisplay');
+        const euSunMoonIcon = document.getElementById('euSunMoonIcon');
+
+        // 取得特定時區時間
+        function getTimeParts(timeZone) {
+            const now = new Date();
+            const formatter = new Intl.DateTimeFormat('zh-TW', {
+                timeZone: timeZone,
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                weekday: 'short',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+
+            const parts = formatter.formatToParts(now);
+            const partMap = {};
+            parts.forEach(p => partMap[p.type] = p.value);
+
+            return {
+                year: partMap.year,
+                month: partMap.month,
+                day: partMap.day,
+                weekday: partMap.weekday,
+                hours: parseInt(partMap.hour, 10) % 24,
+                minutes: parseInt(partMap.minute, 10),
+                seconds: parseInt(partMap.second, 10),
+                milliseconds: now.getMilliseconds()
+            };
+        }
+
+        // 補零 helper
+        function padZero(num) {
+            return String(num).padStart(2, '0');
+        }
+
+        // 時鐘主更新邏輯
+        function updateClocks() {
+            // --- 1. 更新台灣時鐘 ---
+            const twTime = getTimeParts(TIMEZONE_TW);
+
+            const twSecDeg = (twTime.seconds + twTime.milliseconds / 1000) * 6;
+            const twMinDeg = (twTime.minutes + twTime.seconds / 60) * 6;
+            const twHourDeg = ((twTime.hours % 12) + twTime.minutes / 60) * 30;
+
+            twSecondHand.style.transform = `rotate(${twSecDeg}deg)`;
+            twMinuteHand.style.transform = `rotate(${twMinDeg}deg)`;
+            twHourHand.style.transform = `rotate(${twHourDeg}deg)`;
+
+            twDigitalTime.textContent = `${padZero(twTime.hours)}:${padZero(twTime.minutes)}:${padZero(twTime.seconds)}`;
+            twDateDisplay.textContent = `${twTime.year}年${twTime.month}月${twTime.day}日 ${twTime.weekday}`;
+
+            // --- 2. 更新德奧時鐘 ---
+            const euTime = getTimeParts(TIMEZONE_EU);
+
+            const euSecDeg = (euTime.seconds + euTime.milliseconds / 1000) * 6;
+            const euMinDeg = (euTime.minutes + euTime.seconds / 60) * 6;
+            const euHourDeg = ((euTime.hours % 12) + euTime.minutes / 60) * 30;
+
+            euSecondHand.style.transform = `rotate(${euSecDeg}deg)`;
+            euMinuteHand.style.transform = `rotate(${euMinDeg}deg)`;
+            euHourHand.style.transform = `rotate(${euHourDeg}deg)`;
+
+            euDigitalTime.textContent = `${padZero(euTime.hours)}:${padZero(euTime.minutes)}:${padZero(euTime.seconds)}`;
+            euDateDisplay.textContent = `${euTime.year}年${euTime.month}月${euTime.day}日 ${euTime.weekday}`;
+
+            // 日夜圖示
+            if (euTime.hours >= 6 && euTime.hours < 18) {
+                euSunMoonIcon.textContent = '☀️';
+            } else {
+                euSunMoonIcon.textContent = '🌙';
+            }
+        }
+
+        // 初始化與定時器 (每 50ms 更新一次以維持平滑秒針)
+        window.onload = function() {
+            updateClocks();
+            setInterval(updateClocks, 50);
+        };
+    </script>
+</body>
+</html>
