@@ -146,26 +146,26 @@
         </div>
 
         <!-- ==================== 視圖 2：專注番茄鐘模式 ==================== -->
-        <div id="pomoModeView" class="w-full flex flex-col items-center gap-3 z-10 hidden">
-            <!-- 模式切換按鈕（25m 專注 / 5m 短休 / 15m 長休） -->
-            <div class="flex items-center justify-between bg-purple-950/80 p-1 rounded-full border border-purple-500/30 w-full text-[11px] font-semibold">
-                <button id="pomoTypeFocus" onclick="setPomoType('focus')" class="flex-1 py-1 rounded-full transition-all duration-200 text-white bg-indigo-600 shadow-md">🧠 專注 25m</button>
-                <button id="pomoTypeShort" onclick="setPomoType('short')" class="flex-1 py-1 rounded-full transition-all duration-200 text-purple-300 hover:text-white">☕ 短休 5m</button>
-                <button id="pomoTypeLong" onclick="setPomoType('long')" class="flex-1 py-1 rounded-full transition-all duration-200 text-purple-300 hover:text-white">🌴 長休 15m</button>
+        <div id="pomoModeView" class="w-full flex flex-col items-center gap-2.5 z-10 hidden">
+            <!-- 一體化番茄鐘循環階段進度列 -->
+            <div class="bg-slate-950/80 p-1.5 rounded-2xl border border-purple-500/30 w-full text-[10px] font-semibold">
+                <div id="stepBadges" class="grid grid-cols-6 gap-1 w-full text-center">
+                    <!-- 由 JavaScript 動態繪製 6 個階段標籤 -->
+                </div>
             </div>
 
             <!-- 番茄鐘計時容器 -->
-            <div class="clock-container rounded-2xl p-4 w-full flex flex-col items-center justify-between shadow-inner relative overflow-hidden gap-2">
+            <div class="clock-container rounded-2xl p-3.5 w-full flex flex-col items-center justify-between shadow-inner relative overflow-hidden gap-1.5">
                 <div class="absolute inset-0 bg-gradient-to-br from-indigo-600/10 to-purple-600/10 opacity-40 pointer-events-none"></div>
 
                 <!-- 頂部狀態列 -->
                 <div class="flex items-center justify-between w-full z-10 px-1 text-xs text-purple-300 font-medium">
-                    <span id="pomoStatusLabel" class="bg-indigo-900/60 px-2 py-0.5 rounded text-[11px] border border-indigo-500/30 text-emerald-400 font-bold">🧠 專注集中中</span>
+                    <span id="pomoStatusLabel" class="bg-indigo-900/60 px-2 py-0.5 rounded text-[11px] border border-indigo-500/30 text-emerald-400 font-bold">🧠 專注 #1/3</span>
                     <button onclick="toggleAudio()" id="audioBtn" class="text-xs bg-purple-900/40 hover:bg-purple-800/60 px-2 py-0.5 rounded border border-purple-500/20 text-purple-200 transition">🔊 聲音開</button>
                 </div>
 
                 <!-- 環形進度倒數計時 -->
-                <div class="relative w-40 h-40 my-1 flex items-center justify-center z-10">
+                <div class="relative w-36 h-36 my-1 flex items-center justify-center z-10">
                     <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                         <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(139, 92, 246, 0.2)" stroke-width="6"/>
                         <circle id="pomoProgressCircle" cx="50" cy="50" r="42" fill="none" stroke="#34d399" stroke-width="6" stroke-linecap="round" stroke-dasharray="263.89" stroke-dashoffset="0" class="transition-all duration-500"/>
@@ -176,27 +176,31 @@
                         <div id="pomoDisplay" class="text-3xl font-extrabold font-mono text-white tracking-tight drop-shadow-[0_0_10px_rgba(52,211,153,0.5)]">
                             25:00
                         </div>
-                        <div id="pomoSubLabel" class="text-[10px] text-purple-300 uppercase tracking-widest mt-1">Focus Time</div>
+                        <div id="pomoSubLabel" class="text-[10px] text-purple-300 uppercase tracking-widest mt-1">Focus 1/3</div>
                     </div>
                 </div>
 
-                <!-- 操作控制按鈕列 (開始/暫停, 重置) -->
-                <div class="flex items-center justify-center gap-3 z-10 w-full mt-1">
+                <!-- 操作控制按鈕列 (開始/暫停, 跳過, 重置) -->
+                <div class="flex items-center justify-center gap-2 z-10 w-full mt-1">
                     <button id="pomoStartBtn" onclick="togglePomoTimer()" class="flex-1 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-extrabold text-sm shadow-lg shadow-emerald-900/30 active:scale-95 transition-all flex items-center justify-center gap-1">
                         <span id="pomoStartIcon">▶️</span>
                         <span id="pomoStartText">開始</span>
                     </button>
-                    <button onclick="resetPomoTimer()" class="px-3 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-purple-200 font-semibold text-xs border border-purple-500/20 active:scale-95 transition-all flex items-center justify-center gap-1">
+                    <button onclick="skipPomoStep()" title="跳過此階段" class="px-2.5 py-2 rounded-xl bg-purple-900/50 hover:bg-purple-800 text-purple-200 font-semibold text-xs border border-purple-500/30 active:scale-95 transition-all flex items-center justify-center gap-1">
+                        <span>⏭️</span>
+                        <span>跳過</span>
+                    </button>
+                    <button onclick="resetPomoTimer()" title="重置本階段" class="px-2.5 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-purple-200 font-semibold text-xs border border-purple-500/20 active:scale-95 transition-all flex items-center justify-center gap-1">
                         <span>🔄</span>
                         <span>重置</span>
                     </button>
                 </div>
 
-                <!-- 今日完成累積番茄數 -->
+                <!-- 今日完成累積大番茄輪數 -->
                 <div class="flex items-center gap-1.5 text-xs text-purple-300/80 z-10 mt-0.5">
-                    <span>今日專注：</span>
+                    <span>已完成：</span>
                     <span id="pomoCountDisplay" class="font-bold text-amber-400">0</span>
-                    <span>顆番茄 🍅</span>
+                    <span>輪完整大番茄 🍅</span>
                 </div>
             </div>
         </div>
@@ -208,14 +212,34 @@
 
     </div>
 
-    <!-- ==================== JavaScript 時鐘與番茄鐘核心邏輯 ==================== -->
     <script>
         // 時區定義
         const TIMEZONE_TW = 'Asia/Taipei';
         const TIMEZONE_EU = 'Europe/Berlin';
 
+        // 圓環周長常數 (r = 42)
+        const CIRCUMFERENCE = 2 * Math.PI * 42;
+
         let currentLocation = 'TW';
         let currentWidgetMode = 'clock'; // 'clock' 或 'pomo'
+
+        // 一體化番茄鐘 6 階段循環定義
+        const POMO_STEPS = [
+            { type: 'focus', duration: 25 * 60, title: '🧠 專注 #1/3', sub: 'Focus 1/3', color: '#34d399', badge: '專注1' },
+            { type: 'short', duration: 5 * 60, title: '☕ 短休 #1', sub: 'Short Break 1', color: '#c084fc', badge: '短休1' },
+            { type: 'focus', duration: 25 * 60, title: '🧠 專注 #2/3', sub: 'Focus 2/3', color: '#34d399', badge: '專注2' },
+            { type: 'short', duration: 5 * 60, title: '☕ 短休 #2', sub: 'Short Break 2', color: '#c084fc', badge: '短休2' },
+            { type: 'focus', duration: 25 * 60, title: '🧠 專注 #3/3', sub: 'Focus 3/3', color: '#34d399', badge: '專注3' },
+            { type: 'long', duration: 15 * 60, title: '🌴 深度長休 (完成1輪)', sub: 'Long Break', color: '#60a5fa', badge: '長休' }
+        ];
+
+        let currentStepIndex = 0;
+        let pomoTotalSeconds = POMO_STEPS[0].duration;
+        let pomoRemainingSeconds = POMO_STEPS[0].duration;
+        let pomoTimerInterval = null;
+        let isPomoRunning = false;
+        let pomoCompletedCount = 0;
+        let isAudioEnabled = true;
 
         // DOM 元素 - 時鐘
         const hourHand = document.getElementById('hourHand');
@@ -242,16 +266,13 @@
         const pomoStartText = document.getElementById('pomoStartText');
         const pomoProgressCircle = document.getElementById('pomoProgressCircle');
         const pomoCountDisplay = document.getElementById('pomoCountDisplay');
+        const stepBadges = document.getElementById('stepBadges');
         const audioBtn = document.getElementById('audioBtn');
 
-        // 番茄鐘狀態變數
-        let pomoType = 'focus'; // 'focus', 'short', 'long'
-        let pomoTotalSeconds = 25 * 60;
-        let pomoRemainingSeconds = 25 * 60;
-        let pomoTimerInterval = null;
-        let isPomoRunning = false;
-        let pomoCompletedCount = 0;
-        let isAudioEnabled = true;
+        // 數字補零輔助函式
+        function padZero(n) {
+            return String(n).padStart(2, '0');
+        }
 
         // 全域 AudioContext 用於突破瀏覽器自動播放限制
         let audioCtx = null;
@@ -272,6 +293,80 @@
             }
         }
 
+        // 即時計算與更新時鐘（指標、數字時間、日期與 UTC 標籤）
+        function updateClock() {
+            const now = new Date();
+            const timeZone = currentLocation === 'TW' ? TIMEZONE_TW : TIMEZONE_EU;
+
+            // 取得目標時區之當前時間數字
+            const targetDateStr = now.toLocaleString('en-US', { timeZone });
+            const targetDate = new Date(targetDateStr);
+            const ms = now.getMilliseconds();
+
+            const hours = targetDate.getHours();
+            const minutes = targetDate.getMinutes();
+            const seconds = targetDate.getSeconds();
+
+            // 時針/分針/秒針的角度計算（秒針採用毫秒實現平滑動態效果）
+            const secondDeg = ((seconds + ms / 1000) / 60) * 360;
+            const minuteDeg = ((minutes + seconds / 60) / 60) * 360;
+            const hourDeg = (((hours % 12) + minutes / 60 + seconds / 3600) / 12) * 360;
+
+            if (hourHand) hourHand.style.transform = `rotate(${hourDeg}deg)`;
+            if (minuteHand) minuteHand.style.transform = `rotate(${minuteDeg}deg)`;
+            if (secondHand) secondHand.style.transform = `rotate(${secondDeg}deg)`;
+
+            // 數字時間 HH:MM:SS
+            if (digitalTime) digitalTime.textContent = `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}`;
+
+            // 日期格式化 (年/月/日 星期)
+            const year = targetDate.getFullYear();
+            const month = padZero(targetDate.getMonth() + 1);
+            const day = padZero(targetDate.getDate());
+            const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+            const weekday = weekdays[targetDate.getDay()];
+
+            if (dateDisplay) {
+                dateDisplay.textContent = `${year}年${month}月${day}日 星期${weekday}`;
+            }
+
+            // 日夜圖示（早上 6 點至 18 點為太陽，其餘為月亮）
+            if (sunMoonIcon) {
+                sunMoonIcon.textContent = (hours >= 6 && hours < 18) ? '☀️' : '🌙';
+            }
+
+            // 計算當前與 UTC 之時差
+            const utcDateStr = now.toLocaleString('en-US', { timeZone: 'UTC' });
+            const utcDate = new Date(utcDateStr);
+            const offsetHours = Math.round((targetDate - utcDate) / (1000 * 60 * 60));
+            const offsetSign = offsetHours >= 0 ? '+' : '';
+
+            if (locationUtcToggle) {
+                if (currentLocation === 'TW') {
+                    locationUtcToggle.innerHTML = `🇹🇼 台灣 (UTC${offsetSign}${offsetHours})`;
+                } else {
+                    locationUtcToggle.innerHTML = `🇩🇪 德國 (UTC${offsetSign}${offsetHours})`;
+                }
+            }
+        }
+
+        // 切換地點 (台灣 / 德奧)
+        function toggleLocation() {
+            initAudioContext();
+            currentLocation = currentLocation === 'TW' ? 'EU' : 'TW';
+
+            // 切換日期標題配色（台灣：亮綠，德國：亮紫）
+            if (dateDisplay) {
+                if (currentLocation === 'TW') {
+                    dateDisplay.className = "text-xl font-extrabold text-emerald-400 tracking-wider drop-shadow-[0_0_12px_rgba(52,211,153,0.75)] text-center my-1 z-10 transition-colors duration-300";
+                } else {
+                    dateDisplay.className = "text-xl font-extrabold text-purple-400 tracking-wider drop-shadow-[0_0_12px_rgba(192,132,252,0.75)] text-center my-1 z-10 transition-colors duration-300";
+                }
+            }
+
+            updateClock();
+        }
+
         // 切換 Widget 模式 (時鐘 vs 番茄鐘)
         function switchWidgetMode(mode) {
             initAudioContext();
@@ -289,143 +384,37 @@
             }
         }
 
-        // 切換地點 (台灣 / 德奧)
-        function toggleLocation() {
-            switchLocation(currentLocation === 'TW' ? 'EU' : 'TW');
-        }
+        // 渲染頂部 6 個階段小標籤
+        function renderStepBadges() {
+            if (!stepBadges) return;
+            stepBadges.innerHTML = POMO_STEPS.map((step, idx) => {
+                const isActive = idx === currentStepIndex;
+                const isPassed = idx < currentStepIndex;
 
-        function switchLocation(loc) {
-            currentLocation = loc;
-            if (loc === 'TW') {
-                dateDisplay.className = "text-xl font-extrabold text-emerald-400 tracking-wider drop-shadow-[0_0_12px_rgba(52,211,153,0.75)] text-center my-1 z-10 transition-colors duration-300";
-            } else {
-                dateDisplay.className = "text-xl font-extrabold text-purple-300 tracking-wide drop-shadow-[0_0_10px_rgba(192,132,252,0.6)] text-center my-1 z-10 transition-colors duration-300";
-            }
-            updateClock();
-        }
-
-        // 計算並回傳 UTC 格式標籤
-        function getUTCOffsetTag(timeZone) {
-            try {
-                const now = new Date();
-                const formatter = new Intl.DateTimeFormat('en-US', { timeZone, timeZoneName: 'shortOffset' });
-                const parts = formatter.formatToParts(now);
-                const tzPart = parts.find(p => p.type === 'timeZoneName');
-                if (tzPart && tzPart.value) {
-                    return tzPart.value.replace('GMT', 'UTC');
+                let classes = "py-1 rounded-md text-[9px] font-bold transition-all duration-300 ";
+                if (isActive) {
+                    classes += "bg-indigo-600 text-white ring-1 ring-purple-300 shadow-sm scale-105";
+                } else if (isPassed) {
+                    classes += "bg-purple-950/60 text-purple-400 opacity-60";
+                } else {
+                    classes += "bg-slate-900/60 text-purple-300/60";
                 }
-            } catch (e) {}
-            return timeZone === TIMEZONE_TW ? 'UTC+8' : 'UTC+1';
+
+                return `<div class="${classes}">${step.badge}</div>`;
+            }).join('');
         }
 
-        // 取得指定時區時間
-        function getTimeParts(timeZone) {
-            const now = new Date();
-            const formatter = new Intl.DateTimeFormat('zh-TW', {
-                timeZone: timeZone,
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                weekday: 'short',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: false
-            });
+        // 套用當前階段 UI
+        function applyCurrentStepUI() {
+            const step = POMO_STEPS[currentStepIndex];
+            pomoTotalSeconds = step.duration;
+            pomoStatusLabel.textContent = step.title;
+            pomoSubLabel.textContent = step.sub;
 
-            const parts = formatter.formatToParts(now);
-            const partMap = {};
-            parts.forEach(p => partMap[p.type] = p.value);
-
-            return {
-                year: partMap.year,
-                month: partMap.month,
-                day: partMap.day,
-                weekday: partMap.weekday,
-                hours: parseInt(partMap.hour, 10) % 24,
-                minutes: parseInt(partMap.minute, 10),
-                seconds: parseInt(partMap.second, 10),
-                milliseconds: now.getMilliseconds()
-            };
-        }
-
-        function padZero(num) {
-            return String(num).padStart(2, '0');
-        }
-
-        // 時鐘主更新邏輯
-        function updateClock() {
-            const targetTimeZone = currentLocation === 'TW' ? TIMEZONE_TW : TIMEZONE_EU;
-            const timeData = getTimeParts(targetTimeZone);
-            const utcOffset = getUTCOffsetTag(targetTimeZone);
-
-            // 更新簡潔的膠囊按鈕內容
-            if (currentLocation === 'TW') {
-                locationUtcToggle.innerHTML = `🇹🇼 台灣 (${utcOffset})`;
-            } else {
-                locationUtcToggle.innerHTML = `🇩🇪 德國 (${utcOffset})`;
-            }
-
-            const secDeg = (timeData.seconds + timeData.milliseconds / 1000) * 6;
-            const minDeg = (timeData.minutes + timeData.seconds / 60) * 6;
-            const hourDeg = ((timeData.hours % 12) + timeData.minutes / 60) * 30;
-
-            secondHand.style.transform = `rotate(${secDeg}deg)`;
-            minuteHand.style.transform = `rotate(${minDeg}deg)`;
-            hourHand.style.transform = `rotate(${hourDeg}deg)`;
-
-            digitalTime.textContent = `${padZero(timeData.hours)}:${padZero(timeData.minutes)}:${padZero(timeData.seconds)}`;
-            dateDisplay.textContent = `${timeData.year}年${timeData.month}月${timeData.day}日 ${timeData.weekday}`;
-
-            if (timeData.hours >= 6 && timeData.hours < 18) {
-                sunMoonIcon.textContent = '☀️';
-            } else {
-                sunMoonIcon.textContent = '🌙';
-            }
-        }
-
-        // 設定番茄鐘類型 (Focus / Short Break / Long Break)
-        function setPomoType(type) {
-            if (isPomoRunning) {
-                pausePomoTimer();
-            }
-            pomoType = type;
-
-            const btnFocus = document.getElementById('pomoTypeFocus');
-            const btnShort = document.getElementById('pomoTypeShort');
-            const btnLong = document.getElementById('pomoTypeLong');
-
-            btnFocus.className = "flex-1 py-1 rounded-full transition-all duration-200 text-purple-300 hover:text-white";
-            btnShort.className = "flex-1 py-1 rounded-full transition-all duration-200 text-purple-300 hover:text-white";
-            btnLong.className = "flex-1 py-1 rounded-full transition-all duration-200 text-purple-300 hover:text-white";
-
-            if (type === 'focus') {
-                btnFocus.className = "flex-1 py-1 rounded-full transition-all duration-200 text-white bg-indigo-600 shadow-md";
-                pomoTotalSeconds = 25 * 60;
-                pomoStatusLabel.textContent = "🧠 專注集中中";
-                pomoStatusLabel.className = "bg-indigo-900/60 px-2 py-0.5 rounded text-[11px] border border-indigo-500/30 text-emerald-400 font-bold";
-                pomoSubLabel.textContent = "Focus Time";
-                pomoProgressCircle.setAttribute('stroke', '#34d399');
-                pomoDisplay.className = "text-3xl font-extrabold font-mono text-white tracking-tight drop-shadow-[0_0_10px_rgba(52,211,153,0.5)]";
-            } else if (type === 'short') {
-                btnShort.className = "flex-1 py-1 rounded-full transition-all duration-200 text-white bg-purple-600 shadow-md";
-                pomoTotalSeconds = 5 * 60;
-                pomoStatusLabel.textContent = "☕ 短暫休息";
-                pomoStatusLabel.className = "bg-purple-900/60 px-2 py-0.5 rounded text-[11px] border border-purple-500/30 text-purple-300 font-bold";
-                pomoSubLabel.textContent = "Short Break";
-                pomoProgressCircle.setAttribute('stroke', '#c084fc');
-                pomoDisplay.className = "text-3xl font-extrabold font-mono text-white tracking-tight drop-shadow-[0_0_10px_rgba(192,132,252,0.5)]";
-            } else {
-                btnLong.className = "flex-1 py-1 rounded-full transition-all duration-200 text-white bg-blue-600 shadow-md";
-                pomoTotalSeconds = 15 * 60;
-                pomoStatusLabel.textContent = "🌴 深度休息";
-                pomoStatusLabel.className = "bg-blue-900/60 px-2 py-0.5 rounded text-[11px] border border-blue-500/30 text-blue-300 font-bold";
-                pomoSubLabel.textContent = "Long Break";
-                pomoProgressCircle.setAttribute('stroke', '#60a5fa');
-                pomoDisplay.className = "text-3xl font-extrabold font-mono text-white tracking-tight drop-shadow-[0_0_10px_rgba(96,165,250,0.5)]";
-            }
-
-            pomoRemainingSeconds = pomoTotalSeconds;
+            pomoProgressCircle.setAttribute('stroke', step.color);
+            pomoDisplay.className = `text-3xl font-extrabold font-mono text-white tracking-tight`;
+            
+            renderStepBadges();
             updatePomoDisplay();
         }
 
@@ -479,28 +468,39 @@
         }
 
         function resetPomoTimer() {
-            pausePomoTimer();
             pomoRemainingSeconds = pomoTotalSeconds;
-            pomoStartText.textContent = "開始";
             updatePomoDisplay();
         }
 
-        // 番茄鐘時間到達提醒
-        function onPomoTimerFinished() {
-            pausePomoTimer();
-            playChimeSound();
-
-            if (pomoType === 'focus') {
-                pomoCompletedCount++;
-                pomoCountDisplay.textContent = pomoCompletedCount;
-                // 自動提議進入短休
-                setPomoType('short');
-            } else {
-                setPomoType('focus');
-            }
+        // 跳過當前階段
+        function skipPomoStep() {
+            initAudioContext();
+            advanceToNextStep();
         }
 
-        // Web Audio API 合成音效（免加載外部音檔，100% 穩定）
+        // 當前階段倒數結束
+        function onPomoTimerFinished() {
+            playChimeSound();
+            advanceToNextStep();
+        }
+
+        // 自動推推進下一個階段
+        function advanceToNextStep() {
+            if (currentStepIndex === POMO_STEPS.length - 1) {
+                // 長休結束，代表完成 1 輪大番茄！
+                pomoCompletedCount++;
+                pomoCountDisplay.textContent = pomoCompletedCount;
+                currentStepIndex = 0; // 歸位重頭開始
+            } else {
+                currentStepIndex++;
+            }
+
+            applyCurrentStepUI();
+            pomoRemainingSeconds = pomoTotalSeconds;
+            updatePomoDisplay();
+        }
+
+        // Web Audio API 合成音效
         function playChimeSound() {
             if (!isAudioEnabled) return;
             try {
@@ -509,7 +509,7 @@
 
                 const now = audioCtx.currentTime;
                 
-                // 提示音 (C5 -> E5 -> G5 -> C6 亮麗和弦)
+                // 提示音 (C5 -> E5 -> G5 -> C6 和弦)
                 [523.25, 659.25, 783.99, 1046.50].forEach((freq, index) => {
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
@@ -548,9 +548,9 @@
         window.onload = function() {
             updateClock();
             setInterval(updateClock, 50);
-            updatePomoDisplay();
+            applyCurrentStepUI();
 
-            // 監聽第一次點擊/觸控以預熱 AudioContext
+            // 監聽點擊/觸控以啟動 AudioContext 授權
             window.addEventListener('click', initAudioContext, { once: false });
             window.addEventListener('touchstart', initAudioContext, { once: false });
         };
