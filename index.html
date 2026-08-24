@@ -229,6 +229,7 @@
         let currentStepIndex = 0;
         let pomoTotalSeconds = POMO_STEPS[0].duration;
         let pomoRemainingSeconds = POMO_STEPS[0].duration;
+        let pomoEndTime = null; // 精準時間戳記，防背景休眠與斷點問題
         let pomoTimerInterval = null;
         let isPomoRunning = false;
         let pomoCompletedCount = 0;
@@ -396,9 +397,152 @@
             pomoDisplay.textContent = `${padZero(mins)}:${padZero(secs)}`;
 
             // 計算圓環 Stroke Offset
-            const progress = pomoRemainingSeconds / pomoTotalSeconds;
+            const progress = pomoTotalSeconds > 0 ? (pomoRemainingSeconds / pomoTotalSeconds) : 0;
             const offset = CIRCUMFERENCE * (1 - progress);
             pomoProgressCircle.style.strokeDashoffset = offset;
+        }
+
+        // 儲存狀態至本地端 (防 Notion 重新載入)
+        function savePomoState() {
+            try {
+                const state = {
+                    currentStepIndex,
+                    pomoRemainingSeconds,
+                    pomoEndTime,
+                    isPomoRunning,
+                    pomoCompletedCount
+                };
+                localStorage.setItem('notion_pomo_state', JSON.stringify(state));
+            } catch(e) {}
+        }
+
+        // 載入本地端狀態
+        function loadPomoState() {
+            try {
+                const saved = localStorage.getItem('notion_pomo_state');
+                if (saved) {
+                    const state = JSON.parse(saved);
+                    currentStepIndex = state.currentStepIndex || 0;
+                    pomoCompletedCount = state.pomoCompletedCount || 0;
+                    pomoCountDisplay.textContent = pomoCompletedCount;
+
+                    if (state.isPomoRunning && state.pomoEndTime) {
+                        const now = Date.now();
+                        if (state.pomoEndTime > now) {
+                            pomoRemainingSeconds = Math.round((state.pomoEndTime - now) / 1000);
+                            applyCurrentStepUI();
+                            startPomoTimer();
+                            return;
+                        } else {
+                            // 已經超過時間，推進到下一個階段
+                            currentStepIndex = (currentStepIndex + 1) % POMO_STEPS.length;
+                            pomoRemainingSeconds = POMO_STEPS[currentStepIndex].duration;
+                        }
+                    } else if (state.pomoRemainingSeconds !== undefined) {
+                        pomoRemainingSeconds = state.pomoRemainingSeconds;
+                    }
+                }
+            } catch(e) {}
+            applyCurrentStepUI();
+        }
+
+        // 開啟/暫停番茄鐘
+        function togglePomoTimer() {
+            initAudioContext();
+            if (isPomoRunning) {
+                pausePomoTimer();
+            } else {
+                startPomoTimer();
+            }
+        }
+
+        // 核心計時器 Tick
+        function tickPomoTimer() {
+            if (!isPomoRunning) return;
+
+            const now = Date.now();
+            pomoRemainingSeconds = Math.max(0, Math.round((pomoEndTime - now) / 1000));
+
+            updatePomoDisplay();
+
+            if (pomoRemainingSeconds <= 0) {
+                onPomoTimerFinished();
+            }
+        }
+
+        function startPomoTimer() {
+            initAudioContext();
+            isPomoRunning = true;
+            pomoEndTime = Date.now() + pomoRemainingSeconds * 1000;
+            savePomoState();
+
+            pomoStartIcon.textContent = "⏸️";
+            pomoStartText.textContent = "暫停";
+            pomoStartBtn.className = "flex-1 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold text-sm shadow-lg shadow-amber-900/30 active:scale-95 transition-all flex items-center justify-center gap-1";
+            pomoActiveDot.classList.remove('hidden');
+
+            if (pomoTimerInterval) clearInterval(pomoTimerInterval);
+            pomoTimerInterval = setInterval(tickPomoTimer, 500);
+        }
+
+        function pausePomoTimer() {
+            isPomoRunning = false;
+            if (pomoEndTime) {
+                pomoRemainingSeconds = Math.max(0, Math.round((pomoEndTime - Date.now()) / 1000));
+                pomoEndTime = null;
+            }
+            savePomoState();
+
+            pomoStartIcon.textContent = "▶️";
+            pomoStartText.textContent = "繼續";
+            pomoStartBtn.className = "flex-1 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-extrabold text-sm shadow-lg shadow-emerald-900/30 active:scale-95 transition-all flex items-center justify-center gap-1";
+            pomoActiveDot.classList.add('hidden');
+            
+            if (pomoTimerInterval) clearInterval(pomoTimerInterval);
+        }
+
+        function resetPomoTimer() {
+            pomoRemainingSeconds = pomoTotalSeconds;
+            if (isPomoRunning) {
+                pomoEndTime = Date.now() + pomoRemainingSeconds * 1000;
+            }
+            savePomoState();
+            updatePomoDisplay();
+        }
+
+        // 跳過當前階段
+        function skipPomoStep() {
+            initAudioContext();
+            advanceToNextStep();
+        }
+
+        // 當前階段倒數結束
+        function onPomoTimerFinished() {
+            playChimeSound();
+            advanceToNextStep();
+        }
+
+        // 自動推推進下一個階段 (核心修復：正確銜接短休與專注)
+        function advanceToNextStep() {
+            if (currentStepIndex === POMO_STEPS.length - 1) {
+                // 長休結束，代表完成 1 輪大番茄！
+                pomoCompletedCount++;
+                pomoCountDisplay.textContent = pomoCompletedCount;
+                currentStepIndex = 0; // 歸位重頭開始 (專注 #1)
+            } else {
+                currentStepIndex++; // 順暢推推進下一個階段 (專注 -> 短休)
+            }
+
+            const step = POMO_STEPS[currentStepIndex];
+            pomoTotalSeconds = step.duration;
+            pomoRemainingSeconds = step.duration;
+
+            applyCurrentStepUI();
+
+            if (isPomoRunning) {
+                pomoEndTime = Date.now() + pomoRemainingSeconds * 1000;
+            }
+            savePomoState();
         }
 
         // 開啟/暫停番茄鐘
@@ -532,7 +676,9 @@
         window.onload = function() {
             updateClock();
             setInterval(updateClock, 50);
-            applyCurrentStepUI();
+            
+            // 載入防重置的番茄鐘狀態
+            loadPomoState();
 
             // 監聽點擊/觸控以啟動 AudioContext 授權
             window.addEventListener('click', initAudioContext, { once: false });
