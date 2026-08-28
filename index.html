@@ -402,7 +402,8 @@
                     pomoRemainingSeconds,
                     pomoEndTime,
                     isPomoRunning,
-                    pomoCompletedCount
+                    pomoCompletedCount,
+                    lastDate: new Date().toDateString() // 記錄儲存時的日期
                 };
                 localStorage.setItem('notion_pomo_state', JSON.stringify(state));
             } catch(e) {}
@@ -414,8 +415,14 @@
                 const saved = localStorage.getItem('notion_pomo_state');
                 if (saved) {
                     const state = JSON.parse(saved);
-                    currentStepIndex = state.currentStepIndex || 0;
-                    pomoCompletedCount = state.pomoCompletedCount || 0;
+                    const today = new Date().toDateString();
+
+                    // 檢查紀錄是否為今天：如果是今天就延續顆數，如果是新的一天則自動歸 0！
+                    if (state.lastDate === today) {
+                        pomoCompletedCount = state.pomoCompletedCount || 0;
+                    } else {
+                        pomoCompletedCount = 0;
+                    }
                     if (pomoCountDisplay) pomoCountDisplay.textContent = pomoCompletedCount;
 
                     if (state.isPomoRunning && state.pomoEndTime) {
